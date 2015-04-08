@@ -39,6 +39,36 @@ public class NFAtoDFA
 			for(Integer fState: fStates)
 				finalStates.add(fState);
 		}
+
+		public String toString()
+		{
+			String finalString = "";
+			finalString += "Number of states: " + numStates + "\n";
+			for(char c: alphabet)
+				finalString += c + "\t";
+			finalString += "lambda\n";
+
+			for(ArrayList<ArrayList<Integer> > layer1: allStates)
+			{
+				for(ArrayList<Integer> layer2: layer1)
+				{
+					finalString += ("{");
+					for(int i: layer2)
+						finalString += (i + ",");
+					finalString += "}\t";
+				}
+				finalString += ("\n");
+			}
+
+			finalString += "Initial State: " + initState + "\n";
+			finalString += "Final States: {";
+			for(int i: finalStates)
+				finalString += i + ",";
+			finalString += "}";
+			finalString = finalString.replace(",}", "}");
+
+			return finalString;
+		}
 	}
 
 	public ArrayList<String> readFromFile(String filename)
@@ -88,6 +118,9 @@ public class NFAtoDFA
 		NFA nfa = new NFA();
 
 		String lastLine = lines.remove(lines.size()-1);
+		String[] fStates = lastLine.replace("{", "").replace("}", "").split(",");
+		for(String s: fStates)
+			nfa.finalStates.add(Integer.parseInt(s));
 
 		int n 		= 	nfa.numStates = Integer.parseInt(lines.remove(0));
 		int init 	= 	nfa.initState = Integer.parseInt(lines.remove(lines.size()-1));
@@ -103,10 +136,6 @@ public class NFAtoDFA
 		}
 
 		alphabetSize = nfa.alphabet.size();
-
-		for(int i = 0; i < alphabetSize; i++)
-			System.out.print(nfa.alphabet.get(i) + "\t");
-		System.out.println();
 
 		nfa.allStates = extractStates(n, alphabetSize, lines);
 
@@ -173,20 +202,6 @@ public class NFAtoDFA
 			all_states.add(full_state);
 		}
 
-		for(int i = 0; i < all_states.size(); i++)
-		{
-			for(int j = 0; j < all_states.get(i).size(); j++)
-			{
-				System.out.print("{");
-				for(int k = 0; k < all_states.get(i).get(j).size(); k++)
-				{
-					System.out.print(all_states.get(i).get(j).get(k) + ",");
-				}
-				System.out.print("}");
-			}
-			System.out.println();
-		}
-
 		return all_states;
 	}
 
@@ -201,5 +216,6 @@ public class NFAtoDFA
 		ArrayList<String> lines = test.readFromFile(filename);
 
 		NFA demo = test.extractNFA(lines);
+		System.out.println(demo.toString());
 	}
 }
