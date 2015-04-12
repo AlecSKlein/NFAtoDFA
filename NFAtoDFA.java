@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
@@ -18,6 +18,8 @@ public class NFAtoDFA
 		public int initState;
 		//Last line
 		public ArrayList<Integer> finalStates;
+		//Map
+		public ArrayList<HashMap<Character, ArrayList<Integer> > > mapStates;
 		
 		public NFA()
 		{
@@ -26,6 +28,8 @@ public class NFAtoDFA
 			allStates = new ArrayList<ArrayList<ArrayList<Integer> > >();
 			initState = 0;
 			finalStates = new ArrayList<Integer>();
+			mapStates = new ArrayList<HashMap<Character, ArrayList<Integer> > >();
+
 		}
 
 		public NFA(int n, ArrayList<Character> sigma, ArrayList<ArrayList<ArrayList<Integer> > > states, int initial, ArrayList<Integer> fStates)
@@ -38,6 +42,7 @@ public class NFAtoDFA
 			initState = initial;
 			for(Integer fState: fStates)
 				finalStates.add(fState);
+			mapStates = new ArrayList<HashMap<Character, ArrayList<Integer> > >();
 		}
 
 		public String toString()
@@ -46,7 +51,7 @@ public class NFAtoDFA
 			finalString += "Number of states: " + numStates + "\n";
 			for(char c: alphabet)
 				finalString += c + "\t";
-			finalString += "lambda\n";
+			finalString += "\n";
 
 			for(ArrayList<ArrayList<Integer> > layer1: allStates)
 			{
@@ -66,6 +71,18 @@ public class NFAtoDFA
 				finalString += i + ",";
 			finalString += "}";
 			finalString = finalString.replace(",}", "}");
+
+			System.out.println("Contents of map");
+			//PRINTING CONTENTS OF HASHMAP
+			for(HashMap<Character, ArrayList<Integer> > hmap: mapStates)
+			{
+				for(Character c: alphabet)
+				{
+					System.out.print(hmap.get(c) + " ");
+				}
+				System.out.println();
+			}
+			
 
 			return finalString;
 		}
@@ -102,6 +119,21 @@ public class NFAtoDFA
 		return false;
 	}
 
+	public void setStateMap(NFA nfa, ArrayList<ArrayList<ArrayList<Integer> > > states)
+	{
+		for(int i = 0; i < nfa.numStates; i++)
+		{
+			HashMap<Character, ArrayList<Integer> > tempmap = new HashMap<Character, ArrayList<Integer> >();
+			int cIndex = 0;
+			for(ArrayList<Integer> state: states.get(i))
+			{
+				tempmap.put(nfa.alphabet.get(cIndex), state);
+				cIndex++;
+			}
+			nfa.mapStates.add(tempmap);
+		}
+	}
+
 	public NFA extractNFA(ArrayList<String> lines)
 	{
 		/*
@@ -134,6 +166,7 @@ public class NFAtoDFA
 			if(charIsAlpha(letter))
 				nfa.alphabet.add(letter);
 		}
+		nfa.alphabet.add('\\');
 
 		alphabetSize = nfa.alphabet.size();
 
@@ -216,6 +249,7 @@ public class NFAtoDFA
 		ArrayList<String> lines = test.readFromFile(filename);
 
 		NFA demo = test.extractNFA(lines);
+		test.setStateMap(demo, demo.allStates);
 		System.out.println(demo.toString());
 	}
 }
