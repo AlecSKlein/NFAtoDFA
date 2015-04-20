@@ -256,30 +256,33 @@ public class NFAtoDFA
 				if(c != '\\')
 				{
 					ArrayList<Integer> tempmove = moveAlphabet(c, tempDFA.peek(), nfa.mapStates);
-					ArrayList<Integer> tempclosure = closeAlphabet(tempmove, nfa.mapStates);
-					boolean unique = true;
-					for(ArrayList<Integer> i: tempDFA)
+					if(tempmove.size() > 0)
 					{
-						for(ArrayList<Integer> j: finalDFA)
+						ArrayList<Integer> tempclosure = closeAlphabet(tempmove, nfa.mapStates);
+						boolean unique = true;
+						for(ArrayList<Integer> i: tempDFA)
 						{
-							if(!isUniqueState(j, tempclosure))
+							for(ArrayList<Integer> j: finalDFA)
+							{
+								if(!isUniqueState(j, tempclosure))
+								{
+									unique = false;
+								}
+							}
+							if(isUniqueState(i, tempclosure) && unique)
+							{
+
+							}
+							else
 							{
 								unique = false;
 							}
 						}
-						if(isUniqueState(i, tempclosure) && unique)
+						if(unique)
 						{
-
+							tempDFA.offer(tempclosure);
+							System.out.println("Unique state, adding " + tempclosure + " to tempDFA");
 						}
-						else
-						{
-							unique = false;
-						}
-					}
-					if(unique)
-					{
-						tempDFA.offer(tempclosure);
-						System.out.println("Unique state, adding " + tempclosure + " to tempDFA");
 					}
 				}
 			}
