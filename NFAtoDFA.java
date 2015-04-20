@@ -150,6 +150,8 @@ public class NFAtoDFA
 		NFA nfa = new NFA();
 
 		String lastLine = lines.remove(lines.size()-1);
+		while(!lastLine.substring(0, 1).equals("{"))
+			lastLine = lines.remove(lines.size()-1);
 		String[] fStates = lastLine.replace("{", "").replace("}", "").split(",");
 		for(String s: fStates)
 			nfa.finalStates.add(Integer.parseInt(s));
