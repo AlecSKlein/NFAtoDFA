@@ -1,0 +1,38 @@
+Contents of map
+[1] [4] [2] 
+[5] [2] [-1] 
+[5] [-1] [-1] 
+[-1] [-1] [0] 
+[-1] [1] [3] 
+[-1] [-1] [4] 
+Number of states: 6
+a	b	\	
+{1}	{4}	{2}	
+{5}	{2}	{-1}	
+{5}	{-1}	{-1}	
+{-1}	{-1}	{0}	
+{-1}	{1}	{3}	
+{-1}	{-1}	{4}	
+Initial State: 0
+Final States: {5}
+[0, 2]
+Unique state, adding [1, 5, 4, 3, 0, 2] to tempDFA
+[0, 2]
+[1, 5, 4, 3, 0, 2]
+Unique state, adding [4, 3, 0, 2] to tempDFA
+Adding [0, 2] to finalDFA, removing from tempDFA
+[1, 5, 4, 3, 0, 2]
+[4, 3, 0, 2]
+[1, 5, 4, 3, 0, 2]
+[4, 3, 0, 2]
+Unique state, adding [2, 1, 4, 3, 0] to tempDFA
+Adding [1, 5, 4, 3, 0, 2] to finalDFA, removing from tempDFA
+[4, 3, 0, 2]
+[2, 1, 4, 3, 0]
+[4, 3, 0, 2]
+[2, 1, 4, 3, 0]
+Adding [4, 3, 0, 2] to finalDFA, removing from tempDFA
+[2, 1, 4, 3, 0]
+[2, 1, 4, 3, 0]
+Adding [2, 1, 4, 3, 0] to finalDFA, removing from tempDFA
+0 2 1 5 4 3 0 2 4 3 0 2 2 1 4 3 0 

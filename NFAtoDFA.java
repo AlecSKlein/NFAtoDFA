@@ -238,7 +238,7 @@ public class NFAtoDFA
 		return all_states;
 	}
 
-	public void convertNFAtoDFA(NFA nfa)
+	public ArrayList<ArrayList<Integer> > convertNFAtoDFA(NFA nfa)
 	{
 		Queue<ArrayList<Integer> > tempDFA = new LinkedList<ArrayList<Integer> >();
 		ArrayList<ArrayList<Integer> > finalDFA = new ArrayList<ArrayList<Integer> >();
@@ -249,14 +249,44 @@ public class NFAtoDFA
 
 		//We should loop while tempDFA is not empty
 		//After move and closure of all alphabet, move tempDFA.poll to finalDFA
-		for(Character c: nfa.alphabet)
+		while(tempDFA.size() > 0)
 		{
-			if(c != '\\')
+			for(Character c: nfa.alphabet)
 			{
-				for(Integer i: moveAlphabet(c, tempDFA.peek(), nfa.mapStates))
-					System.out.println(c + " " + i);
+				if(c != '\\')
+				{
+					ArrayList<Integer> tempmove = moveAlphabet(c, tempDFA.peek(), nfa.mapStates);
+					ArrayList<Integer> tempclosure = closeAlphabet(tempmove, nfa.mapStates);
+					boolean unique = true;
+					for(ArrayList<Integer> i: tempDFA)
+					{
+						for(ArrayList<Integer> j: finalDFA)
+						{
+							if(!isUniqueState(j, tempclosure))
+							{
+								unique = false;
+							}
+						}
+						if(isUniqueState(i, tempclosure) && unique)
+						{
+
+						}
+						else
+						{
+							unique = false;
+						}
+					}
+					if(unique)
+					{
+						tempDFA.offer(tempclosure);
+						System.out.println("Unique state, adding " + tempclosure + " to tempDFA");
+					}
+				}
 			}
+			System.out.println("Adding " + tempDFA.peek() + " to finalDFA, removing from tempDFA");
+			finalDFA.add(tempDFA.poll());
 		}
+		return finalDFA;
 	}
 
 	//Starting lambdaTransition method, returns the list
@@ -296,6 +326,31 @@ public class NFAtoDFA
 		return moveList;
 	}
 
+	public ArrayList<Integer> closeAlphabet(ArrayList<Integer> moveState, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
+	{
+		ArrayList<Integer> closureState = new ArrayList<Integer>();
+		for(Integer i: moveState)
+		{
+			if(!isInState(i, closureState))
+				closureState.add(i);
+			closeAlphabet(i, closureState, mapOfStates);
+		}
+		return closureState;
+	}
+
+	public void closeAlphabet(int transition, ArrayList<Integer> state, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
+	{
+		ArrayList<Integer> temp = mapOfStates.get(transition).get('\\');
+		for(Integer i: temp)
+		{
+			if(!isInState(i, state) && i != -1)
+			{
+				state.add(i);
+				closeAlphabet(i, state, mapOfStates);
+			}
+		}
+	}
+
 	public boolean isInState(int transition, ArrayList<Integer> state)
 	{
 		for(Integer i: state)
@@ -310,20 +365,19 @@ public class NFAtoDFA
 		if(dfaState.size() != newState.size())
 		{
 			//False --> the states are of different sizes, meaning they are not identical
-			return false;
+			return true;
 		}
-		for(Integer i: newState)
+		for(Integer i: dfaState)
 		{
-			for(Integer j: dfaState)
+			boolean unique = true;
+			for(Integer j: newState)
 			{
-				if(i != j)
-				{
-					//True --> the new state is unique compared to the existing state
-					return true;
-				}
+				if(i == j)
+					unique = false;
 			}
+			if(unique == true)
+				return true;
 		}
-		//False --> the new state is identical to the already existing one
 		return false;
 	}
 
@@ -342,6 +396,9 @@ public class NFAtoDFA
 		test.setStateMap(demo, demo.allStates);
 		System.out.println(demo.toString());
 		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
-		test.convertNFAtoDFA(demo);
+		ArrayList<ArrayList<Integer> > finalDFA = test.convertNFAtoDFA(demo);
+		System.out.println("Contents of final DFA");
+		for(ArrayList<Integer> iList: finalDFA)
+			System.out.println(iList);
 	}
 }
