@@ -238,6 +238,95 @@ public class NFAtoDFA
 		return all_states;
 	}
 
+	public void convertNFAtoDFA(NFA nfa)
+	{
+		Queue<ArrayList<Integer> > tempDFA = new LinkedList<ArrayList<Integer> >();
+		ArrayList<ArrayList<Integer> > finalDFA = new ArrayList<ArrayList<Integer> >();
+		//Given the NFA, find all Lambda transitions. nfa.initState and nfa.mapStates
+
+		//We don't have to check the starting lambda state because it is the first
+		tempDFA.offer(lambdaTransitions(nfa));
+
+		//We should loop while tempDFA is not empty
+		//After move and closure of all alphabet, move tempDFA.poll to finalDFA
+		for(Character c: nfa.alphabet)
+		{
+			if(c != '\\')
+			{
+				for(Integer i: moveAlphabet(c, tempDFA.peek(), nfa.mapStates))
+					System.out.println(c + " " + i);
+			}
+		}
+	}
+
+	//Starting lambdaTransition method, returns the list
+	public ArrayList<Integer> lambdaTransitions(NFA nfa)
+	{
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		list.add(nfa.initState);
+		lambdaTransitions(nfa.initState, list, nfa.mapStates);
+		return list;
+	}
+
+	//Recursive method for lambdaTransitions
+	public void lambdaTransitions(int transition, ArrayList<Integer> state, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
+	{
+		for(Integer i: mapOfStates.get(transition).get('\\'))
+		{
+			if(!isInState(i, state) && i != -1)
+			{
+				state.add(i);
+				lambdaTransitions(i, state, mapOfStates);
+			}
+		}
+	}
+
+	public ArrayList<Integer> moveAlphabet(char letter, ArrayList<Integer> lambdaState, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
+	{
+		ArrayList<Integer> moveList = new ArrayList<Integer>();
+		for(Integer i: lambdaState)
+		{
+			ArrayList<Integer> j = (mapOfStates.get(i)).get(letter);
+			for(Integer transition: j)
+			{
+				if(transition != -1 && !isInState(transition, moveList))
+					moveList.add(transition);
+			}
+		}
+		return moveList;
+	}
+
+	public boolean isInState(int transition, ArrayList<Integer> state)
+	{
+		for(Integer i: state)
+			if(transition == i)
+				return true;
+		return false;
+	}
+
+	//Returns true if the new state is not the same as the existing state
+	public boolean isUniqueState(ArrayList<Integer> dfaState, ArrayList<Integer> newState)
+	{
+		if(dfaState.size() != newState.size())
+		{
+			//False --> the states are of different sizes, meaning they are not identical
+			return false;
+		}
+		for(Integer i: newState)
+		{
+			for(Integer j: dfaState)
+			{
+				if(i != j)
+				{
+					//True --> the new state is unique compared to the existing state
+					return true;
+				}
+			}
+		}
+		//False --> the new state is identical to the already existing one
+		return false;
+	}
+
 	public static void main(String[] args)
 	{
 		NFAtoDFA test = new NFAtoDFA();
@@ -249,7 +338,10 @@ public class NFAtoDFA
 		ArrayList<String> lines = test.readFromFile(filename);
 
 		NFA demo = test.extractNFA(lines);
+		//THIS LINE MUST HAPPEN BECAUSE I PROGRAMMED THIS POORLY
 		test.setStateMap(demo, demo.allStates);
 		System.out.println(demo.toString());
+		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
+		test.convertNFAtoDFA(demo);
 	}
 }
