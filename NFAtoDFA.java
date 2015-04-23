@@ -244,15 +244,24 @@ public class NFAtoDFA
 	{
 		Queue<ArrayList<Integer> > tempDFA = new LinkedList<ArrayList<Integer> >();
 		ArrayList<ArrayList<Integer> > finalDFA = new ArrayList<ArrayList<Integer> >();
+		ArrayList<HashMap<Character, Integer> > finalLanguage = new ArrayList<HashMap<Character, Integer> >();
+
 		//Given the NFA, find all Lambda transitions. nfa.initState and nfa.mapStates
 
 		//We don't have to check the starting lambda state because it is the first
+		//Additionally, we can add to the finalDFA because it's guaranteed unique
 		tempDFA.offer(lambdaTransitions(nfa));
+		finalDFA.add(tempDFA.peek());
+
+		//This index monitors the index of the new language
+		int tempDFAIndex = 0;
 
 		//We should loop while tempDFA is not empty
-		//After move and closure of all alphabet, move tempDFA.poll to finalDFA
+		//After move and closure of all alphabet, check state for uniqueness
+		//If the new state is unique, add it to the temp and final dfa set
 		while(tempDFA.size() > 0)
 		{
+			finalLanguage.add(new HashMap<Character, Integer>());
 			for(Character c: nfa.alphabet)
 			{
 				if(c != '\\')
@@ -261,36 +270,37 @@ public class NFAtoDFA
 					if(tempmove.size() > 0)
 					{
 						ArrayList<Integer> tempclosure = closeAlphabet(tempmove, nfa.mapStates);
-						boolean unique = true;
-						for(ArrayList<Integer> i: tempDFA)
-						{
-							for(ArrayList<Integer> j: finalDFA)
-							{
-								if(!isUniqueState(j, tempclosure))
-								{
-									unique = false;
-								}
-							}
-							if(isUniqueState(i, tempclosure) && unique)
-							{
-
-							}
-							else
-							{
-								unique = false;
-							}
-						}
-						if(unique)
+						int uniquestate = getUniqueState(finalDFA, tempclosure);
+						if(uniquestate == -1)
 						{
 							tempDFA.offer(tempclosure);
-							System.out.println("Unique state, adding " + tempclosure + " to tempDFA");
+							finalDFA.add(tempclosure);
+							finalLanguage.get(tempDFAIndex).put(c, finalDFA.size()-1);
+						}
+						else
+						{
+							finalLanguage.get(tempDFAIndex).put(c, uniquestate);
+							//map at index of tempDFAIndex, list at letter, add uniquestate value
 						}
 					}
 				}
 			}
 			System.out.println("Adding " + tempDFA.peek() + " to finalDFA, removing from tempDFA");
-			finalDFA.add(tempDFA.poll());
+			tempDFA.poll();
+			tempDFAIndex++;
 		}
+		
+		for(HashMap<Character, Integer> hmap: finalLanguage)
+		{
+			for(Character c: nfa.alphabet)
+			{
+				if(c != '\\')
+				{
+					System.out.println(c + ": " + hmap.get(c));
+				}
+			}
+		}
+
 		return finalDFA;
 	}
 
@@ -364,23 +374,23 @@ public class NFAtoDFA
 		return false;
 	}
 
-	//Returns true if the new state is not the same as the existing state
-	public boolean isUniqueState(ArrayList<Integer> dfaState, ArrayList<Integer> newState)
+	public int getUniqueState(ArrayList<ArrayList<Integer> > finalStates, ArrayList<Integer> newState)
 	{
-		if(dfaState.size() != newState.size())
+		for(int i = 0; i < finalStates.size(); i++)
 		{
-			//False --> the states are of different sizes, meaning they are not identical
-			return true;
+			if(!isUniqueState(finalStates.get(i), newState))
+				return i;
 		}
-		for(Integer i: dfaState)
+		return -1;
+	}
+
+	public boolean isUniqueState(ArrayList<Integer> finalState, ArrayList<Integer> newState)
+	{
+		if(finalState.size() != newState.size())
+			return true;
+		for(Integer i: newState)
 		{
-			boolean unique = true;
-			for(Integer j: newState)
-			{
-				if(i == j)
-					unique = false;
-			}
-			if(unique == true)
+			if(!isInState(i, finalState))
 				return true;
 		}
 		return false;
