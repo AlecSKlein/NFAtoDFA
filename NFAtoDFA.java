@@ -247,6 +247,9 @@ public class NFAtoDFA
 		ArrayList<HashMap<Character, Integer> > finalLanguage = new ArrayList<HashMap<Character, Integer> >();
 		ArrayList<Integer> nullState = new ArrayList<Integer>();
 		nullState.add(-1);
+		int nullIndex = -1;
+		int firstNullIndex = -1;
+		HashMap<Character, Integer> nullAlphabet = new HashMap<Character, Integer>();
 
 		//Given the NFA, find all Lambda transitions. nfa.initState and nfa.mapStates
 
@@ -296,12 +299,13 @@ public class NFAtoDFA
 					}
 					if(tempmove.size() == 0)
 					{
-
 						int uniquestate = getUniqueState(finalDFA, nullState);
 						if(uniquestate == -1)
 						{
+							nullIndex = finalDFA.size();
+							firstNullIndex = tempDFAIndex+1;
 							finalDFA.add(nullState);
-							HashMap<Character, Integer> nullAlphabet = new HashMap<Character, Integer>();
+							
 							for(int i = 0; i < nfa.alphabet.size()-1; i++)
 							{
 								nullAlphabet.put(nfa.alphabet.get(i), finalDFA.size()-1);
@@ -318,6 +322,11 @@ public class NFAtoDFA
 			//System.out.println("Adding " + tempDFA.peek() + " to finalDFA, removing from tempDFA");
 			tempDFA.poll();
 			tempDFAIndex++;
+		}
+		if(nullIndex != -1)
+		{
+			finalLanguage.remove(firstNullIndex);
+			finalLanguage.add(nullIndex, nullAlphabet);
 		}
 		
 		System.out.print("\nNEW LANGUAGE\n\t");
