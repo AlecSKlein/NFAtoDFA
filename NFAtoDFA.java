@@ -245,6 +245,8 @@ public class NFAtoDFA
 		Queue<ArrayList<Integer> > tempDFA = new LinkedList<ArrayList<Integer> >();
 		ArrayList<ArrayList<Integer> > finalDFA = new ArrayList<ArrayList<Integer> >();
 		ArrayList<HashMap<Character, Integer> > finalLanguage = new ArrayList<HashMap<Character, Integer> >();
+		ArrayList<Integer> nullState = new ArrayList<Integer>();
+		nullState.add(-1);
 
 		//Given the NFA, find all Lambda transitions. nfa.initState and nfa.mapStates
 
@@ -252,6 +254,7 @@ public class NFAtoDFA
 		//Additionally, we can add to the finalDFA because it's guaranteed unique
 		tempDFA.offer(lambdaTransitions(nfa));
 		finalDFA.add(tempDFA.peek());
+		System.out.println(tempDFA.peek());
 
 		//This index monitors the index of the new language
 		int tempDFAIndex = 0;
@@ -261,45 +264,85 @@ public class NFAtoDFA
 		//If the new state is unique, add it to the temp and final dfa set
 		while(tempDFA.size() > 0)
 		{
+			//Create a new hashmap for the new index of tempdfa
 			finalLanguage.add(new HashMap<Character, Integer>());
+			System.out.println("TDFA: " +  tempDFA.peek());
 			for(Character c: nfa.alphabet)
 			{
 				if(c != '\\')
 				{
+					//Generate move for new letter using next tempdfa in queue
 					ArrayList<Integer> tempmove = moveAlphabet(c, tempDFA.peek(), nfa.mapStates);
+					//If it's not empty:
 					if(tempmove.size() > 0)
 					{
+						//Generate new closure, check if it's unique
 						ArrayList<Integer> tempclosure = closeAlphabet(tempmove, nfa.mapStates);
+						System.out.println("Letter: " + c + ", index: " + tempDFAIndex + ", Closure: " + tempclosure);
 						int uniquestate = getUniqueState(finalDFA, tempclosure);
+						//If it's unique (-1), add to temp/final dfa, add to language at finaldfa index
 						if(uniquestate == -1)
 						{
 							tempDFA.offer(tempclosure);
 							finalDFA.add(tempclosure);
 							finalLanguage.get(tempDFAIndex).put(c, finalDFA.size()-1);
 						}
+						//Otherwise, add to lanuage at pre-existing index
 						else
 						{
 							finalLanguage.get(tempDFAIndex).put(c, uniquestate);
 							//map at index of tempDFAIndex, list at letter, add uniquestate value
 						}
 					}
+					if(tempmove.size() == 0)
+					{
+
+						int uniquestate = getUniqueState(finalDFA, nullState);
+						if(uniquestate == -1)
+						{
+							finalDFA.add(nullState);
+							HashMap<Character, Integer> nullAlphabet = new HashMap<Character, Integer>();
+							for(int i = 0; i < nfa.alphabet.size()-1; i++)
+							{
+								nullAlphabet.put(nfa.alphabet.get(i), finalDFA.size()-1);
+							}
+							finalLanguage.add(nullAlphabet);
+							finalLanguage.get(tempDFAIndex).put(c, finalDFA.size()-1);
+							tempDFAIndex++;
+						}
+						else
+							finalLanguage.get(tempDFAIndex).put(c, uniquestate);
+					}
 				}
 			}
-			System.out.println("Adding " + tempDFA.peek() + " to finalDFA, removing from tempDFA");
+			//System.out.println("Adding " + tempDFA.peek() + " to finalDFA, removing from tempDFA");
 			tempDFA.poll();
 			tempDFAIndex++;
 		}
 		
+		System.out.print("\nNEW LANGUAGE\n\t");
+		for(Character c: nfa.alphabet)
+		{
+			if(c != '\\')
+				System.out.print(c + "\t");
+		}
+		System.out.println();
+
+		int sigma = 0;
 		for(HashMap<Character, Integer> hmap: finalLanguage)
 		{
+			System.out.print(sigma + ":\t");
 			for(Character c: nfa.alphabet)
 			{
 				if(c != '\\')
 				{
-					System.out.println(c + ": " + hmap.get(c));
+					System.out.print(hmap.get(c) + "\t");
 				}
 			}
+			System.out.println();
+			sigma++;
 		}
+		System.out.println();
 
 		return finalDFA;
 	}
