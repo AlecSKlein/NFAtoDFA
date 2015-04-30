@@ -6,6 +6,82 @@ import java.io.IOException;
 
 public class NFAtoDFA
 {
+	public class DFA
+	{
+		ArrayList<Integer> acceptingStates;
+		ArrayList<ArrayList<Integer> > DFAStates;
+		ArrayList<HashMap<Character, Integer> > DFALanguage;
+		public ArrayList<Character> alphabet;
+		int initialState;
+		
+		public DFA()
+		{
+			acceptingStates = new ArrayList<Integer>();
+			DFAStates = new ArrayList<ArrayList<Integer> >();
+			DFALanguage = new ArrayList<HashMap<Character, Integer> >();
+			alphabet = new ArrayList<Character>();
+			initialState = 0;
+		}
+
+		public String toString()
+		{
+			String finalDFAString = "";
+			finalDFAString += "To DFA:";
+			for(ArrayList<Integer> state: DFAStates)
+			{
+				finalDFAString += state;
+			}
+			finalDFAString = finalDFAString.replace("[", "{").replace("]", "}");
+			
+			finalDFAString += "\nSigma:\t";
+			for(Character letter: alphabet)
+			{
+				finalDFAString += letter + "\t";
+			}
+			int index = 0;
+			finalDFAString += "\n";
+			for(int i = 0; i < alphabet.size(); i++)
+			{
+				finalDFAString += "---------";
+			}
+			finalDFAString += "\n";
+			for(HashMap<Character, Integer> hmap: DFALanguage)
+			{
+				finalDFAString += index + "\t"; 
+				for(Character c: alphabet)
+				{
+					if(c != '\\')
+					{
+						finalDFAString += hmap.get(c) + "\t";
+					}
+				}
+				finalDFAString += "\n";
+				index++;
+			}
+
+			for(int i = 0; i < alphabet.size(); i++)
+			{
+				finalDFAString += "---------";
+			}
+			finalDFAString += "\n";
+
+			finalDFAString += "s: " + initialState + "\n";
+			String accStates = acceptingStates.toString();
+			finalDFAString += "A: " + accStates.replace("[", "{").replace("]", "}");
+
+			return finalDFAString;
+		}
+
+		public void setAlphabet(NFA nfa)
+		{
+			for(Character letter: nfa.alphabet)
+			{
+				if(letter != '\\')
+					alphabet.add(letter);
+			}
+		}
+	}
+
 	public class NFA
 	{
 		//First line
@@ -166,7 +242,9 @@ public class NFAtoDFA
 		{
 			letter = l2.charAt(i);
 			if(charIsAlpha(letter))
+			{
 				nfa.alphabet.add(letter);
+			}
 		}
 		nfa.alphabet.add('\\');
 
@@ -240,8 +318,9 @@ public class NFAtoDFA
 		return all_states;
 	}
 
-	public ArrayList<ArrayList<Integer> > convertNFAtoDFA(NFA nfa)
+	public DFA convertNFAtoDFA(NFA nfa)
 	{
+		DFA dfa = new DFA();
 		Queue<ArrayList<Integer> > tempDFA = new LinkedList<ArrayList<Integer> >();
 		ArrayList<ArrayList<Integer> > finalDFA = new ArrayList<ArrayList<Integer> >();
 		ArrayList<HashMap<Character, Integer> > finalLanguage = new ArrayList<HashMap<Character, Integer> >();
@@ -286,6 +365,13 @@ public class NFAtoDFA
 						//If it's unique (-1), add to temp/final dfa, add to language at finaldfa index
 						if(uniquestate == -1)
 						{
+							for(Integer acceptingState: nfa.finalStates)
+							{
+								if(isInState(acceptingState, tempclosure))
+								{
+									dfa.acceptingStates.add(finalDFA.size());
+								}
+							}
 							tempDFA.offer(tempclosure);
 							finalDFA.add(tempclosure);
 							finalLanguage.get(tempDFAIndex).put(c, finalDFA.size()-1);
@@ -319,7 +405,6 @@ public class NFAtoDFA
 					}
 				}
 			}
-			//System.out.println("Adding " + tempDFA.peek() + " to finalDFA, removing from tempDFA");
 			tempDFA.poll();
 			tempDFAIndex++;
 		}
@@ -353,7 +438,10 @@ public class NFAtoDFA
 		}
 		System.out.println();
 
-		return finalDFA;
+		dfa.DFAStates = finalDFA;
+		dfa.DFALanguage = finalLanguage;
+		dfa.initialState = nfa.initState;
+		return dfa;
 	}
 
 	//Starting lambdaTransition method, returns the list
@@ -463,9 +551,13 @@ public class NFAtoDFA
 		test.setStateMap(demo, demo.allStates);
 		System.out.println(demo.toString());
 		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
-		ArrayList<ArrayList<Integer> > finalDFA = test.convertNFAtoDFA(demo);
+		DFA finalDFA = test.convertNFAtoDFA(demo);
+		finalDFA.setAlphabet(demo);
 		System.out.println("Contents of final DFA");
-		for(ArrayList<Integer> iList: finalDFA)
-			System.out.println(iList);
+		
+		System.out.println(finalDFA.toString());
+		//for(ArrayList<Integer> iList: finalDFA.DFAStates)
+		//	System.out.println(iList);
+
 	}
 }
