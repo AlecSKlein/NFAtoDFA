@@ -47,7 +47,7 @@ public class NFAtoDFA
 			finalDFAString += "\n";
 			for(HashMap<Character, Integer> hmap: DFALanguage)
 			{
-				finalDFAString += index + "\t"; 
+				finalDFAString += index + ":\t"; 
 				for(Character c: alphabet)
 				{
 					if(c != '\\')
@@ -124,39 +124,47 @@ public class NFAtoDFA
 		public String toString()
 		{
 			String finalString = "";
-			finalString += "Number of states: " + numStates + "\n";
+
+			finalString += "Sigma:";
+			for(int i = 0; i < alphabet.size()-1; i++)
+				finalString += alphabet.get(i) + " ";
+			finalString += "\n------\n\t";
+
 			for(char c: alphabet)
 				finalString += c + "\t";
 			finalString += "\n";
 
+			int index = 0;
 			for(ArrayList<ArrayList<Integer> > layer1: allStates)
 			{
+				finalString += index++ + ":\t";
 				for(ArrayList<Integer> layer2: layer1)
 				{
 					finalString += ("{");
 					for(int i: layer2)
-						finalString += (i + ",");
+						if(i != -1)
+							finalString += (i + ",");
 					finalString += "}\t";
 				}
 				finalString += ("\n");
 			}
-
-			finalString += "Initial State: " + initState + "\n";
-			finalString += "Final States: {";
+			finalString += "------\n";
+			finalString += "s: " + initState + "\n";
+			finalString += "A: {";
 			for(int i: finalStates)
 				finalString += i + ",";
-			finalString += "}";
+			finalString += "}\n";
 			finalString = finalString.replace(",}", "}");
 
-			System.out.println("Contents of map");
+			//System.out.println("Contents of map");
 			//PRINTING CONTENTS OF HASHMAP
 			for(HashMap<Character, ArrayList<Integer> > hmap: mapStates)
 			{
 				for(Character c: alphabet)
 				{
-					System.out.print(hmap.get(c) + " ");
+					//System.out.print(hmap.get(c) + " ");
 				}
-				System.out.println();
+				//System.out.println();
 			}
 			
 
@@ -272,23 +280,23 @@ public class NFAtoDFA
 
 		ArrayList<ArrayList<String> > tempStates = new ArrayList<ArrayList<String> >();
 
-		//System.out.println();
+		////System.out.println();
 
 		for(int i = 0; i < states.size(); i++)
 		{
 			String[] temp = states.get(i).split("S");
 			ArrayList<String> temp2 = new ArrayList<String>();
-			//System.out.println("New temp");
+			////System.out.println("New temp");
 
 			for(String s: temp)
 			{
-				//System.out.println("Adding " + s + " to this temp");
+				////System.out.println("Adding " + s + " to this temp");
 				temp2.add(s);
 			}
 			tempStates.add(temp2);
 		}
 
-		//System.out.println();
+		////System.out.println();
 
 		ArrayList<ArrayList<ArrayList<Integer> > > all_states = new ArrayList<ArrayList<ArrayList<Integer> > >();
 		for(int i = 0; i < tempStates.size(); i++)
@@ -298,10 +306,10 @@ public class NFAtoDFA
 			{
 				ArrayList<Integer> single_state = new ArrayList<Integer>();
 				String temp = tempStates.get(i).get(j);
-				//System.out.print(temp);
-				//System.out.println("\nStripping");
+				////System.out.print(temp);
+				////System.out.println("\nStripping");
 				temp = temp.replace("{", "").replace("}", "");
-				//System.out.println(temp + "\nStripped\n");
+				////System.out.println(temp + "\nStripped\n");
 				String[] transitionStates = temp.split(",");
 				for(String s: transitionStates)
 				{
@@ -336,7 +344,7 @@ public class NFAtoDFA
 		//Additionally, we can add to the finalDFA because it's guaranteed unique
 		tempDFA.offer(lambdaTransitions(nfa));
 		finalDFA.add(tempDFA.peek());
-		System.out.println(tempDFA.peek());
+		//System.out.println(tempDFA.peek());
 
 		//This index monitors the index of the new language
 		int tempDFAIndex = 0;
@@ -348,7 +356,7 @@ public class NFAtoDFA
 		{
 			//Create a new hashmap for the new index of tempdfa
 			finalLanguage.add(new HashMap<Character, Integer>());
-			System.out.println("TDFA: " +  tempDFA.peek());
+			//System.out.println("TDFA: " +  tempDFA.peek());
 			for(Character c: nfa.alphabet)
 			{
 				if(c != '\\')
@@ -360,7 +368,7 @@ public class NFAtoDFA
 					{
 						//Generate new closure, check if it's unique
 						ArrayList<Integer> tempclosure = closeAlphabet(tempmove, nfa.mapStates);
-						System.out.println("Letter: " + c + ", index: " + tempDFAIndex + ", Closure: " + tempclosure);
+						//System.out.println("Letter: " + c + ", index: " + tempDFAIndex + ", Closure: " + tempclosure);
 						int uniquestate = getUniqueState(finalDFA, tempclosure);
 						//If it's unique (-1), add to temp/final dfa, add to language at finaldfa index
 						if(uniquestate == -1)
@@ -414,29 +422,29 @@ public class NFAtoDFA
 			finalLanguage.add(nullIndex, nullAlphabet);
 		}
 		
-		System.out.print("\nNEW LANGUAGE\n\t");
+		/*System.out.print("\nNEW LANGUAGE\n\t");
 		for(Character c: nfa.alphabet)
 		{
 			if(c != '\\')
-				System.out.print(c + "\t");
+				//System.out.print(c + "\t");
 		}
-		System.out.println();
+		*///System.out.println();
 
 		int sigma = 0;
 		for(HashMap<Character, Integer> hmap: finalLanguage)
 		{
-			System.out.print(sigma + ":\t");
+			//System.out.print(sigma + ":\t");
 			for(Character c: nfa.alphabet)
 			{
 				if(c != '\\')
 				{
-					System.out.print(hmap.get(c) + "\t");
+					//System.out.print(hmap.get(c) + "\t");
 				}
 			}
-			System.out.println();
+			//System.out.println();
 			sigma++;
 		}
-		System.out.println();
+		//System.out.println();
 
 		dfa.DFAStates = finalDFA;
 		dfa.DFALanguage = finalLanguage;
@@ -553,11 +561,11 @@ public class NFAtoDFA
 		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
 		DFA finalDFA = test.convertNFAtoDFA(demo);
 		finalDFA.setAlphabet(demo);
-		System.out.println("Contents of final DFA");
+		//System.out.println("Contents of final DFA");
 		
 		System.out.println(finalDFA.toString());
 		//for(ArrayList<Integer> iList: finalDFA.DFAStates)
-		//	System.out.println(iList);
+		//	//System.out.println(iList);
 
 	}
 }
