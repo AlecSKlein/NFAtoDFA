@@ -3,6 +3,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 
 public class NFAtoDFA
 {
@@ -184,6 +186,27 @@ public class NFAtoDFA
 				line = line.replace(" ", "");
 				if(!line.equals(""))
 					allLines.add(line);
+			}
+		}
+		catch(IOException e)
+		{
+			//
+		}
+		return allLines;
+	}
+
+	public ArrayList<String> readInputStrings(String filename)
+	{
+		ArrayList<String> allLines = new ArrayList<String>();
+		File file = new File(filename);
+		try
+		{
+			FileReader fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String line;
+			while((line = br.readLine()) != null)
+			{
+				allLines.add(line);
 			}
 		}
 		catch(IOException e)
@@ -569,6 +592,7 @@ public class NFAtoDFA
 
 	public static void main(String[] args)
 	{
+		String output = "";
 		NFAtoDFA test = new NFAtoDFA();
 		String filename, inputStrings;
 		if(args.length > 0)
@@ -582,25 +606,34 @@ public class NFAtoDFA
 
 		ArrayList<String> lines = test.readFromFile(filename);
 
-		ArrayList<String> input = test.readFromFile(inputStrings);
+		ArrayList<String> input = test.readInputStrings(inputStrings);
 
 		NFA demo = test.extractNFA(lines);
 		//THIS LINE MUST HAPPEN BECAUSE I PROGRAMMED THIS POORLY
 		test.setStateMap(demo, demo.allStates);
-		System.out.println(demo.toString());
 		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
 		DFA finalDFA = test.convertNFAtoDFA(demo);
 		finalDFA.setAlphabet(demo);
 		//System.out.println("Contents of final DFA");
-		
-		System.out.println(finalDFA.toString());
 
-		//for(ArrayList<Integer> iList: finalDFA.DFAStates)
-		//	//System.out.println(iList);
+		output += demo.toString();
+		output += finalDFA.toString() + "\n\n";
 		for(String s: input)
 		{
-			System.out.println(s + " is " + test.isAccepted(finalDFA, s));
+			boolean accepted = test.isAccepted(finalDFA, s);
+			if(accepted)
+				output += s + " is accepted";
+			else
+				output += s + " is rejected";
+			output += "\n";
 		}
-
+		try (PrintStream out = new PrintStream(new FileOutputStream("output.txt"))) {
+		    out.print(output);
+		    out.close();
+		}
+		catch(IOException e)
+		{
+			
+		}
 	}
 }
