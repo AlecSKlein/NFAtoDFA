@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-public class NFAtoDFA
+public class FSM
 {
 	//A small DFA class to encapsulate all of the DFA information
 	public class DFA
@@ -341,7 +341,7 @@ public class NFAtoDFA
 	}
 
 	//Returns a DFA of the converted NFA
-	public DFA convertNFAtoDFA(NFA nfa)
+	public DFA convertFSM(NFA nfa)
 	{
 		DFA dfa = new DFA();
 		Queue<ArrayList<Integer> > tempDFA = new LinkedList<ArrayList<Integer> >();
@@ -588,7 +588,7 @@ public class NFAtoDFA
 		//Output string, eventually written to file
 		String output = "";
 		//Creating class object
-		NFAtoDFA test = new NFAtoDFA();
+		FSM test = new FSM();
 		String filename, inputStrings;
 		
 		//Reading in files
@@ -611,7 +611,7 @@ public class NFAtoDFA
 		//Find the lambda transitions of the dfa
 		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
 		//Generate the final DFA
-		DFA finalDFA = test.convertNFAtoDFA(demo);
+		DFA finalDFA = test.convertFSM(demo);
 		//Set its alphabet
 		finalDFA.setAlphabet(demo);
 		//Add information to output string
@@ -631,6 +631,7 @@ public class NFAtoDFA
 		try (PrintStream out = new PrintStream(new FileOutputStream("output.txt"))) {
 		    out.print(output);
 		    out.close();
+		    System.out.println("Output written to output.txt");
 		}
 		catch(IOException e)
 		{
