@@ -1,38 +1,35 @@
-Sigma:a 
+Sigma:a b 
 ------
-   0: (a,{-1}) ( ,{1,5}) 
-   1: (a,{2}) ( ,{-1}) 
-   2: (a,{3}) ( ,{-1}) 
-   3: (a,{4}) ( ,{-1}) 
-   4: (a,{-1}) ( ,{-1}) 
-   5: (a,{6}) ( ,{-1}) 
-   6: (a,{5}) ( ,{-1}) 
+   0: (a,{1}) (b,{4}) ( ,{2}) 
+   1: (a,{5}) (b,{2}) ( ,{}) 
+   2: (a,{5}) (b,{}) ( ,{}) 
+   3: (a,{}) (b,{}) ( ,{0}) 
+   4: (a,{}) (b,{1}) ( ,{3}) 
+   5: (a,{}) (b,{}) ( ,{4}) 
 ------
 s: 0
-A: {4,5}
-ToDFA:{0,1,5}{2,6}{3,5}{4,6}{5}{6}
-Sigma:	a	
----------
-   0:	1	
-   1:	2	
-   2:	3	
-   3:	4	
-   4:	5	
-   5:	4	
----------
+A: {5}
+ToDFA:{0,2}{1,5,4,3,0,2}{4,3,0,2}{2,1,4,3,0}
+Sigma:	a	b	
+------------------
+   0:	1	2	
+   1:	1	3	
+   2:	1	3	
+   3:	1	3	
+------------------
 s: 0
-A: {0, 2, 3, 4}
+A: {1}
 
-aabaa is rejected
+aabaa is accepted
 abbbaaababaab is rejected
-aaaaa is rejected
+aaaaa is accepted
 aaaaaaaaaa is accepted
 aaaaaaaa is accepted
 aaa is accepted
-aaaaaaaaaaaaaaa is rejected
-bbaabba is rejected
- is accepted
-ba is rejected
+aaaaaaaaaaaaaaa is accepted
+bbaabba is accepted
+ is rejected
+ba is accepted
 ababababbbbbab is rejected
 abbbbbab is rejected
 abcdddab is rejected

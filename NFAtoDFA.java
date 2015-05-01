@@ -8,8 +8,10 @@ import java.io.PrintStream;
 
 public class NFAtoDFA
 {
+	//A small DFA class to encapsulate all of the DFA information
 	public class DFA
 	{
+		//List of accepting states, dfa states, the new language, sigma, and the initial state
 		ArrayList<Integer> acceptingStates;
 		ArrayList<ArrayList<Integer> > DFAStates;
 		ArrayList<HashMap<Character, Integer> > DFALanguage;
@@ -25,6 +27,7 @@ public class NFAtoDFA
 			initialState = 0;
 		}
 
+		//A toString method to format output
 		public String toString()
 		{
 			String finalDFAString = "";
@@ -84,8 +87,10 @@ public class NFAtoDFA
 		}
 	}
 
+	//A class to encapsulate an NFA
 	public class NFA
 	{
+		//File-reading records
 		//First line
 		public int numStates;
 		//Second Line
@@ -141,7 +146,10 @@ public class NFAtoDFA
 					char printedChar = c;
 					if(c == '\\')
 						printedChar = ' ';
-					finalString += ("(" + printedChar + "," + hmap.get(c).toString().replace("[", "{").replace("]", "}").replace(" ", "") + ") ");
+					if(hmap.get(c).get(0) == -1)
+						finalString += ("(" + printedChar + ",{}) ");
+					else
+						finalString += ("(" + printedChar + "," + hmap.get(c).toString().replace("[", "{").replace("]", "}").replace(" ", "") + ") ");
 				}
 				finalString += "\n";
 				index++;
@@ -154,23 +162,12 @@ public class NFAtoDFA
 				finalString += i + ",";
 			finalString += "}\n";
 			finalString = finalString.replace(",}", "}");
-
-			//System.out.println("Contents of map");
-			//PRINTING CONTENTS OF HASHMAP
-			for(HashMap<Character, ArrayList<Integer> > hmap: mapStates)
-			{
-				for(Character c: alphabet)
-				{
-					//System.out.print(hmap.get(c) + " ");
-				}
-				//System.out.println();
-			}
-			
-
+		
 			return finalString;
 		}
 	}
 
+	//Read all of the lines in from the nfa file
 	public ArrayList<String> readFromFile(String filename)
 	{
 		ArrayList<String> allLines = new ArrayList<String>();
@@ -195,6 +192,8 @@ public class NFAtoDFA
 		return allLines;
 	}
 
+	//Read all lines from the inputStrings file
+	//This method is different because there can be an empty string in inputStrings
 	public ArrayList<String> readInputStrings(String filename)
 	{
 		ArrayList<String> allLines = new ArrayList<String>();
@@ -216,6 +215,7 @@ public class NFAtoDFA
 		return allLines;
 	}
 
+	//Check if a character is alpha between a/A and z/Z
 	public boolean charIsAlpha(char c)
 	{
 		if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
@@ -223,6 +223,7 @@ public class NFAtoDFA
 		return false;
 	}
 
+	//Sets the hashmap of states (a->0, b->0, lambda->0)
 	public void setStateMap(NFA nfa, ArrayList<ArrayList<ArrayList<Integer> > > states)
 	{
 		for(int i = 0; i < nfa.numStates; i++)
@@ -238,6 +239,7 @@ public class NFAtoDFA
 		}
 	}
 
+	//Extracts the nfa from the list of all lines
 	public NFA extractNFA(ArrayList<String> lines)
 	{
 		/*
@@ -283,6 +285,8 @@ public class NFAtoDFA
 		return nfa;
 	}
 
+	//Extracts all of the states from the list of states
+	//This is a result of the file's format being so unique
 	public ArrayList<ArrayList<ArrayList<Integer> > > extractStates(int stateSize, int alphSize, ArrayList<String> states)
 	{
 		//This loop modifies the remaining states
@@ -293,6 +297,7 @@ public class NFAtoDFA
 		for(int i = 0; i < states.size(); i++)
 			states.set(i, ((states.get(i).split(":")[1]).replace("{}", "{N}")).replace("}{", "}S{"));
 
+		//PROCESS
 		//TODO: Split by S, add to list of lists
 		//TODO: Then split by commas
 		//TODO: Then add each resulting number to a list
@@ -300,23 +305,15 @@ public class NFAtoDFA
 
 		ArrayList<ArrayList<String> > tempStates = new ArrayList<ArrayList<String> >();
 
-		////System.out.println();
-
 		for(int i = 0; i < states.size(); i++)
 		{
 			String[] temp = states.get(i).split("S");
 			ArrayList<String> temp2 = new ArrayList<String>();
-			////System.out.println("New temp");
 
 			for(String s: temp)
-			{
-				////System.out.println("Adding " + s + " to this temp");
 				temp2.add(s);
-			}
 			tempStates.add(temp2);
 		}
-
-		////System.out.println();
 
 		ArrayList<ArrayList<ArrayList<Integer> > > all_states = new ArrayList<ArrayList<ArrayList<Integer> > >();
 		for(int i = 0; i < tempStates.size(); i++)
@@ -326,10 +323,7 @@ public class NFAtoDFA
 			{
 				ArrayList<Integer> single_state = new ArrayList<Integer>();
 				String temp = tempStates.get(i).get(j);
-				////System.out.print(temp);
-				////System.out.println("\nStripping");
 				temp = temp.replace("{", "").replace("}", "");
-				////System.out.println(temp + "\nStripped\n");
 				String[] transitionStates = temp.split(",");
 				for(String s: transitionStates)
 				{
@@ -346,6 +340,7 @@ public class NFAtoDFA
 		return all_states;
 	}
 
+	//Returns a DFA of the converted NFA
 	public DFA convertNFAtoDFA(NFA nfa)
 	{
 		DFA dfa = new DFA();
@@ -364,7 +359,6 @@ public class NFAtoDFA
 		//Additionally, we can add to the finalDFA because it's guaranteed unique
 		tempDFA.offer(lambdaTransitions(nfa));
 		finalDFA.add(tempDFA.peek());
-		//System.out.println(tempDFA.peek());
 
 		//This index monitors the index of the new language
 		int tempDFAIndex = 0;
@@ -376,9 +370,9 @@ public class NFAtoDFA
 		{
 			//Create a new hashmap for the new index of tempdfa
 			finalLanguage.add(new HashMap<Character, Integer>());
-			//System.out.println("TDFA: " +  tempDFA.peek());
 			for(Character c: nfa.alphabet)
 			{
+				//this character is a placeholder for empty string
 				if(c != '\\')
 				{
 					//Generate move for new letter using next tempdfa in queue
@@ -404,20 +398,29 @@ public class NFAtoDFA
 							//map at index of tempDFAIndex, list at letter, add uniquestate value
 						}
 					}
+					//This means the move results in a null string (a trap state)
 					if(tempmove.size() == 0)
 					{
+						//Get the index of the uniquestate
 						int uniquestate = getUniqueState(finalDFA, nullState);
+						//As before, -1 means its unique
 						if(uniquestate == -1)
 						{
+							//finalDFA size is the current index of the nfa
 							nullIndex = finalDFA.size();
+							//This is the index where the first null occurs
 							firstNullIndex = tempDFAIndex+1;
+							//Add the nullstate to the dfa as a placeholder
 							finalDFA.add(nullState);
-							
+							//Fill a state with the given value for the trap state
 							for(int i = 0; i < nfa.alphabet.size()-1; i++)
 							{
 								nullAlphabet.put(nfa.alphabet.get(i), finalDFA.size()-1);
 							}
+							//Add the new state to the final language
 							finalLanguage.add(nullAlphabet);
+							//Finally, put the character that found the trap state
+							//Into the right place
 							finalLanguage.get(tempDFAIndex).put(c, finalDFA.size()-1);
 							tempDFAIndex++;
 						}
@@ -431,34 +434,12 @@ public class NFAtoDFA
 		}
 		if(nullIndex != -1)
 		{
+			//Swap the values at firstNullIndex (placeholder) with the null alphabet state
 			finalLanguage.remove(firstNullIndex);
 			finalLanguage.add(nullIndex, nullAlphabet);
 		}
-		
-		/*System.out.print("\nNEW LANGUAGE\n\t");
-		for(Character c: nfa.alphabet)
-		{
-			if(c != '\\')
-				//System.out.print(c + "\t");
-		}
-		*///System.out.println();
 
-		int sigma = 0;
-		for(HashMap<Character, Integer> hmap: finalLanguage)
-		{
-			//System.out.print(sigma + ":\t");
-			for(Character c: nfa.alphabet)
-			{
-				if(c != '\\')
-				{
-					//System.out.print(hmap.get(c) + "\t");
-				}
-			}
-			//System.out.println();
-			sigma++;
-		}
-		//System.out.println();
-
+		//Finalize DFA variables and return
 		dfa.DFAStates = finalDFA;
 		dfa.DFALanguage = finalLanguage;
 		dfa.initialState = nfa.initState;
@@ -495,6 +476,7 @@ public class NFAtoDFA
 		}
 	}
 
+	//Performs the move operation on the given state using the alphabet map
 	public ArrayList<Integer> moveAlphabet(char letter, ArrayList<Integer> lambdaState, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
 	{
 		ArrayList<Integer> moveList = new ArrayList<Integer>();
@@ -510,6 +492,7 @@ public class NFAtoDFA
 		return moveList;
 	}
 
+	//Performs the close operation on the given state using the alphabet map
 	public ArrayList<Integer> closeAlphabet(ArrayList<Integer> moveState, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
 	{
 		ArrayList<Integer> closureState = new ArrayList<Integer>();
@@ -522,6 +505,7 @@ public class NFAtoDFA
 		return closureState;
 	}
 
+	//Recursive function for the closeAlphabet call
 	public void closeAlphabet(int transition, ArrayList<Integer> state, ArrayList<HashMap<Character, ArrayList<Integer> > > mapOfStates)
 	{
 		ArrayList<Integer> temp = mapOfStates.get(transition).get('\\');
@@ -535,6 +519,7 @@ public class NFAtoDFA
 		}
 	}
 
+	//returns true if the value (transition) is present in the state
 	public boolean isInState(int transition, ArrayList<Integer> state)
 	{
 		for(Integer i: state)
@@ -543,6 +528,8 @@ public class NFAtoDFA
 		return false;
 	}
 
+	//Returns the index of the newState within the finalStates list if it is not unique
+	//If it is unique, returns -1
 	public int getUniqueState(ArrayList<ArrayList<Integer> > finalStates, ArrayList<Integer> newState)
 	{
 		for(int i = 0; i < finalStates.size(); i++)
@@ -553,6 +540,8 @@ public class NFAtoDFA
 		return -1;
 	}
 
+	//If the state is unique compared to the other state, return true
+	//If the state is not unique, returns false
 	public boolean isUniqueState(ArrayList<Integer> finalState, ArrayList<Integer> newState)
 	{
 		if(finalState.size() != newState.size())
@@ -565,6 +554,9 @@ public class NFAtoDFA
 		return false;
 	}
 
+	//Checking for word acceptance
+	//If the word passes the dfa in a valid way, returns true
+	//Otherwise, returns false
 	public boolean isAccepted(DFA dfa, String word)
 	{
 
@@ -590,11 +582,16 @@ public class NFAtoDFA
 		return false;
 	}
 
+	//The main function
 	public static void main(String[] args)
 	{
+		//Output string, eventually written to file
 		String output = "";
+		//Creating class object
 		NFAtoDFA test = new NFAtoDFA();
 		String filename, inputStrings;
+		
+		//Reading in files
 		if(args.length > 0)
 			filename = args[0];
 		else
@@ -603,21 +600,24 @@ public class NFAtoDFA
 			inputStrings = args[1];
 		else
 			inputStrings = "inputStrings.txt";
-
 		ArrayList<String> lines = test.readFromFile(filename);
-
 		ArrayList<String> input = test.readInputStrings(inputStrings);
-
+		//End reading in files
+		
+		//Create a new NFA object and fill it with the lines in the file
 		NFA demo = test.extractNFA(lines);
-		//THIS LINE MUST HAPPEN BECAUSE I PROGRAMMED THIS POORLY
+		//Set the statemap of the new NFA
 		test.setStateMap(demo, demo.allStates);
+		//Find the lambda transitions of the dfa
 		ArrayList<Integer> lambdadfa = test.lambdaTransitions(demo);
+		//Generate the final DFA
 		DFA finalDFA = test.convertNFAtoDFA(demo);
+		//Set its alphabet
 		finalDFA.setAlphabet(demo);
-		//System.out.println("Contents of final DFA");
-
+		//Add information to output string
 		output += demo.toString();
 		output += finalDFA.toString() + "\n\n";
+		//Add acceptance to output
 		for(String s: input)
 		{
 			boolean accepted = test.isAccepted(finalDFA, s);
@@ -627,6 +627,7 @@ public class NFAtoDFA
 				output += s + " is rejected";
 			output += "\n";
 		}
+		//Write to output file
 		try (PrintStream out = new PrintStream(new FileOutputStream("output.txt"))) {
 		    out.print(output);
 		    out.close();
@@ -636,4 +637,5 @@ public class NFAtoDFA
 			
 		}
 	}
+	//Program finished
 }
