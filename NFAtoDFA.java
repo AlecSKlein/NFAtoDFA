@@ -31,7 +31,7 @@ public class NFAtoDFA
 			{
 				finalDFAString += state;
 			}
-			finalDFAString = finalDFAString.replace("[", "{").replace("]", "}");
+			finalDFAString = finalDFAString.replace("[", "{").replace("]", "}").replace(" ", "");
 			
 			finalDFAString += "\nSigma:\t";
 			for(Character letter: alphabet)
@@ -47,7 +47,7 @@ public class NFAtoDFA
 			finalDFAString += "\n";
 			for(HashMap<Character, Integer> hmap: DFALanguage)
 			{
-				finalDFAString += index + ":\t"; 
+				finalDFAString += "   " + index + ":\t"; 
 				for(Character c: alphabet)
 				{
 					if(c != '\\')
@@ -128,26 +128,23 @@ public class NFAtoDFA
 			finalString += "Sigma:";
 			for(int i = 0; i < alphabet.size()-1; i++)
 				finalString += alphabet.get(i) + " ";
-			finalString += "\n------\n\t";
-
-			for(char c: alphabet)
-				finalString += c + "\t";
-			finalString += "\n";
+			finalString += "\n------\n";
 
 			int index = 0;
-			for(ArrayList<ArrayList<Integer> > layer1: allStates)
+			for(HashMap<Character, ArrayList<Integer> > hmap: mapStates)
 			{
-				finalString += index++ + ":\t";
-				for(ArrayList<Integer> layer2: layer1)
+				finalString += "   " + index + ": ";
+				for(Character c: alphabet)
 				{
-					finalString += ("{");
-					for(int i: layer2)
-						if(i != -1)
-							finalString += (i + ",");
-					finalString += "}\t";
+					char printedChar = c;
+					if(c == '\\')
+						printedChar = ' ';
+					finalString += ("(" + printedChar + "," + hmap.get(c).toString().replace("[", "{").replace("]", "}").replace(" ", "") + ") ");
 				}
-				finalString += ("\n");
+				finalString += "\n";
+				index++;
 			}
+			
 			finalString += "------\n";
 			finalString += "s: " + initState + "\n";
 			finalString += "A: {";
@@ -373,13 +370,6 @@ public class NFAtoDFA
 						//If it's unique (-1), add to temp/final dfa, add to language at finaldfa index
 						if(uniquestate == -1)
 						{
-							for(Integer acceptingState: nfa.finalStates)
-							{
-								if(isInState(acceptingState, tempclosure))
-								{
-									dfa.acceptingStates.add(finalDFA.size());
-								}
-							}
 							tempDFA.offer(tempclosure);
 							finalDFA.add(tempclosure);
 							finalLanguage.get(tempDFAIndex).put(c, finalDFA.size()-1);
@@ -449,6 +439,14 @@ public class NFAtoDFA
 		dfa.DFAStates = finalDFA;
 		dfa.DFALanguage = finalLanguage;
 		dfa.initialState = nfa.initState;
+		for(int i = 0; i < dfa.DFAStates.size(); i++)
+		{
+			for(Integer j: nfa.finalStates)
+			{
+				if(isInState(j, dfa.DFAStates.get(i)) && !isInState(i, dfa.acceptingStates))
+					dfa.acceptingStates.add(i);
+			}
+		}
 		return dfa;
 	}
 
@@ -544,15 +542,47 @@ public class NFAtoDFA
 		return false;
 	}
 
+	public boolean isAccepted(DFA dfa, String word)
+	{
+
+		for(int index = 0; index < word.length(); index++)
+		{
+			boolean match = false;
+			for(Character c: dfa.alphabet)
+			{
+				if(word.charAt(index) == c)
+					match = true;
+			}
+			if(match == false)
+				return false;
+		}
+
+		int currentState = dfa.initialState;
+		for(int index = 0; index < word.length(); index++)
+		{
+			currentState = dfa.DFALanguage.get(currentState).get(word.charAt(index));
+		}
+		if(isInState(currentState, dfa.acceptingStates))
+			return true;
+		return false;
+	}
+
 	public static void main(String[] args)
 	{
 		NFAtoDFA test = new NFAtoDFA();
-		String filename;
+		String filename, inputStrings;
 		if(args.length > 0)
 			filename = args[0];
 		else
 			filename = "nfa1.nfa";
+		if(args.length > 1)
+			inputStrings = args[1];
+		else
+			inputStrings = "inputStrings.txt";
+
 		ArrayList<String> lines = test.readFromFile(filename);
+
+		ArrayList<String> input = test.readFromFile(inputStrings);
 
 		NFA demo = test.extractNFA(lines);
 		//THIS LINE MUST HAPPEN BECAUSE I PROGRAMMED THIS POORLY
@@ -564,8 +594,13 @@ public class NFAtoDFA
 		//System.out.println("Contents of final DFA");
 		
 		System.out.println(finalDFA.toString());
+
 		//for(ArrayList<Integer> iList: finalDFA.DFAStates)
 		//	//System.out.println(iList);
+		for(String s: input)
+		{
+			System.out.println(s + " is " + test.isAccepted(finalDFA, s));
+		}
 
 	}
 }
